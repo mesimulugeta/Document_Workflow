@@ -3,10 +3,7 @@ package com.zion.backend.document;
 import static com.zion.backend.document.DocumentStatus.CHANGES_REQUESTED;
 import static com.zion.backend.document.DocumentStatus.DRAFT;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -99,7 +96,7 @@ public class DocumentService {
         List<AuditLog> entries = audit.findByDocumentIdOrderByCreatedAtAscIdAsc(id);
         Set<Long> actorIds = entries.stream().map(AuditLog::getActorId).collect(Collectors.toSet());
         Map<Long, String> names = users.findAllById(actorIds).stream()
-                .collect(Collectors.toMap(AppUser::getId, AppUser::getFullName));
+                .collect(Collectors.toMap(AppUser::getId, u -> Objects.toString(u.getFullName(), "Unknown")));
         return entries.stream()
                 .map(e -> new AuditEntryResponse(e.getId(), e.getAction(), e.getFromStatus(), e.getToStatus(),
                         e.getComment(), e.getActorId(), names.get(e.getActorId()), e.getCreatedAt()))

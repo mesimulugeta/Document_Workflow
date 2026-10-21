@@ -41,7 +41,7 @@ public final class WorkflowRules {
         RULES.put(WorkflowAction.RESUBMIT,
                 new Rule(Set.of(CHANGES_REQUESTED), SUBMITTED, ActorType.OWNER, false));
         RULES.put(WorkflowAction.WITHDRAW,
-                new Rule(Set.of(DRAFT, SUBMITTED, UNDER_REVIEW, CHANGES_REQUESTED), WITHDRAWN, ActorType.OWNER, false));
+                new Rule(Set.of(SUBMITTED, UNDER_REVIEW, CHANGES_REQUESTED), WITHDRAWN, ActorType.OWNER, false));
     }
 
     private WorkflowRules() {}
