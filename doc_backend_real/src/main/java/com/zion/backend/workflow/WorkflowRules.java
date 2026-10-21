@@ -84,7 +84,7 @@ public final class WorkflowRules {
         return rule.to();
     }
 
-    /** The actions this person may perform right now; the frontend will use this to show or hide buttons. */
+    /** The actions this person may perform right now; the frontend uses this to show or hide buttons. */
     public static Set<WorkflowAction> allowedActions(DocumentStatus current, boolean isOwner, Set<String> roles) {
         Set<WorkflowAction> result = EnumSet.noneOf(WorkflowAction.class);
         boolean reviewer = hasReviewerRole(roles);
@@ -97,7 +97,7 @@ public final class WorkflowRules {
         return result;
     }
 
-    private static boolean hasReviewerRole(Set<String> roles) {
+    public static boolean hasReviewerRole(Set<String> roles) {
         return roles.stream().anyMatch(REVIEWER_ROLES::contains);
     }
 }

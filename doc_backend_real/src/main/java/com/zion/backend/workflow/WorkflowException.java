@@ -3,7 +3,7 @@ package com.zion.backend.workflow;
 public class WorkflowException extends RuntimeException {
 
     public enum ErrorCode {
-        ILLEGAL_TRANSITION, NOT_ALLOWED, CONFLICT_OF_INTEREST, COMMENT_REQUIRED
+        ILLEGAL_TRANSITION, NOT_ALLOWED, CONFLICT_OF_INTEREST, COMMENT_REQUIRED, NOT_EDITABLE
     }
 
     private final ErrorCode code;

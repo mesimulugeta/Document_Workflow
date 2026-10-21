@@ -24,6 +24,10 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/realms/dwp
+  data:
+    web:
+      pageable:
+        max-page-size: 100
 
 management:
   endpoints:
