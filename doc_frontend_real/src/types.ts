@@ -45,3 +45,14 @@ export interface AuditEntry {
   actorName: string
   createdAt: string
 }
+
+export interface FileDto {
+  id: number
+  filename: string
+  contentType: string
+  sizeBytes: number
+  sha256: string
+  uploadedById: number
+  uploadedByName: string
+  createdAt: string
+}

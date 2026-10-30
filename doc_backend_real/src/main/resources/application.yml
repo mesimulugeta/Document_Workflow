@@ -28,6 +28,18 @@ spring:
     web:
       pageable:
         max-page-size: 100
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+
+app:
+  storage:
+    endpoint: http://localhost:8333
+    bucket: dwp-files
+    region: us-east-1
+    access-key: ${S3_ACCESS_KEY:dwpaccess}
+    secret-key: ${S3_SECRET_KEY:dwpsecret123}
 
 management:
   endpoints:

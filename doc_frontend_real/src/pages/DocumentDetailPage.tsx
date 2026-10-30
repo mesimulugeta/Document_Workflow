@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { toast } from "sonner"
 import { api, ApiError } from "@/lib/api"
 import type { DocumentDto, WorkflowAction } from "@/types"
+import { AttachmentsCard } from "@/components/AttachmentsCard"
 import { StatusBadge, statusLabel } from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -23,6 +24,8 @@ const ACTION_LABELS: Record<WorkflowAction, string> = {
 const HISTORY_LABELS: Record<string, string> = {
   CREATE: "Created the draft",
   UPDATE: "Edited the document",
+  UPLOAD_FILE: "Attached a file",
+  DELETE_FILE: "Removed a file",
   SUBMIT: "Submitted for review",
   START_REVIEW: "Started the review",
   APPROVE: "Approved",
@@ -107,6 +110,7 @@ export function DocumentDetailPage() {
   function refresh() {
     queryClient.invalidateQueries({ queryKey: ["document", docId] })
     queryClient.invalidateQueries({ queryKey: ["history", docId] })
+    queryClient.invalidateQueries({ queryKey: ["files", docId] })
     queryClient.invalidateQueries({ queryKey: ["documents"] })
   }
 
@@ -170,6 +174,8 @@ export function DocumentDetailPage() {
               </>
             )}
           </Card>
+
+          <AttachmentsCard doc={doc} />
 
           {doc.allowedActions.length > 0 && (
             <Card className="space-y-3 p-6">

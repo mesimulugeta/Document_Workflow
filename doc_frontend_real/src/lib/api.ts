@@ -1,5 +1,5 @@
 import { keycloak } from "@/auth/keycloak"
-import type { AuditEntry, DocumentDto, DocumentStatus, PageDto, WorkflowAction } from "@/types"
+import type { AuditEntry, DocumentDto, DocumentStatus, FileDto, PageDto, WorkflowAction } from "@/types"
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8081"
 
@@ -16,25 +16,31 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   // Refresh the access token if it expires within 30 seconds; otherwise send the user back to login.
   await keycloak.updateToken(30).catch(() => keycloak.login())
 
   const headers = new Headers(init.headers)
   headers.set("Authorization", `Bearer ${keycloak.token}`)
-  if (init.body) headers.set("Content-Type", "application/json")
+  // JSON bodies are strings; for FormData the browser sets the multipart boundary itself.
+  if (typeof init.body === "string") headers.set("Content-Type", "application/json")
 
-  const res = await fetch(`${BASE_URL}${path}`, { ...init, headers })
+  return fetch(`${BASE_URL}${path}`, { ...init, headers })
+}
 
-  if (!res.ok) {
-    let body: { code?: string; detail?: string; errors?: Record<string, string> } | null = null
-    try {
-      body = await res.json()
-    } catch {
-      /* the error response had no JSON body */
-    }
-    throw new ApiError(res.status, body?.code ?? "UNKNOWN", body?.detail ?? res.statusText, body?.errors)
+async function toApiError(res: Response): Promise<ApiError> {
+  let body: { code?: string; detail?: string; errors?: Record<string, string> } | null = null
+  try {
+    body = await res.json()
+  } catch {
+    /* the error response had no JSON body */
   }
+  return new ApiError(res.status, body?.code ?? "UNKNOWN", body?.detail ?? res.statusText, body?.errors)
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const res = await authorizedFetch(path, init)
+  if (!res.ok) throw await toApiError(res)
   return (res.status === 204 ? undefined : await res.json()) as T
 }
 
@@ -64,4 +70,26 @@ export const api = {
   history: (id: number) => request<AuditEntry[]>(`/api/documents/${id}/history`),
   perform: (id: number, action: WorkflowAction, comment?: string) =>
     post<DocumentDto>(`/api/documents/${id}/${ACTION_PATHS[action]}`, comment ? { comment } : {}),
+
+  listFiles: (docId: number) => request<FileDto[]>(`/api/documents/${docId}/files`),
+  uploadFile: (docId: number, file: File) => {
+    const form = new FormData()
+    form.append("file", file)
+    return request<FileDto>(`/api/documents/${docId}/files`, { method: "POST", body: form })
+  },
+  deleteFile: (docId: number, fileId: number) =>
+    request<void>(`/api/documents/${docId}/files/${fileId}`, { method: "DELETE" }),
+  // The browser cannot send an Authorization header with a plain link, so fetch the bytes and save them.
+  downloadFile: async (docId: number, file: FileDto) => {
+    const res = await authorizedFetch(`/api/documents/${docId}/files/${file.id}`)
+    if (!res.ok) throw await toApiError(res)
+    const url = URL.createObjectURL(await res.blob())
+    const link = document.createElement("a")
+    link.href = url
+    link.download = file.filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  },
 }
