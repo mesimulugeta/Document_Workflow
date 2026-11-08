@@ -1,0 +1,253 @@
+/* docflow-polish */
+:root, :root.pf-v5-theme-dark {
+  --df-bg: #F5FAED;
+  --df-lemon: #C7EE83;
+  --df-btn: #83C94A;
+  --df-deep: #246B3A;
+  --df-ink: #173D2B;
+  --df-muted: #5b6f5f;
+  --df-border: #d3e4c3;
+  --pf-v5-global--primary-color--100: #246B3A;
+  --pf-v5-global--primary-color--200: #1d5830;
+  --pf-v5-global--active-color--100: #246B3A;
+  --pf-v5-global--link--Color: #246B3A;
+  --pf-v5-global--link--Color--hover: #173D2B;
+  --pf-v5-c-login__main--BorderTopColor: transparent;
+  --pf-v5-c-login__main--BorderTopWidth: 0;
+}
+/* ---------- Background ---------- */
+html, body, .login-pf, .login-pf-page, .pf-v5-c-login {
+  background:
+    radial-gradient(55rem 26rem at 100% 0%, #E6F5C8 0%, rgba(230,245,200,0) 60%),
+    radial-gradient(40rem 28rem at 0% 100%, #DFF3BF 0%, rgba(223,243,191,0) 60%),
+    var(--df-bg) !important;
+  background-attachment: fixed !important;
+  color: var(--df-ink);
+}
+body::before, body::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.55;
+}
+body::before {
+  top: 0; right: 0; width: 260px; height: 260px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M200 0C200 70 150 120 80 120C80 50 130 0 200 0Z' fill='%23C7EE83'/%3E%3Cpath d='M200 60C200 120 165 160 110 160C110 100 145 60 200 60Z' fill='%2397cf6c' opacity='0.7'/%3E%3C/svg%3E");
+}
+body::after {
+  bottom: 0; left: 0; width: 240px; height: 240px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M0 200C0 130 50 80 120 80C120 150 70 200 0 200Z' fill='%23C7EE83'/%3E%3Cpath d='M0 140C0 80 35 40 90 40C90 100 55 140 0 140Z' fill='%2397cf6c' opacity='0.7'/%3E%3C/svg%3E");
+}
+.pf-v5-c-login {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 28px 16px !important;
+}
+/* ---------- The single card ---------- */
+.pf-v5-c-login__container {
+  position: relative;
+  z-index: 1;
+  display: flex !important;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px !important;
+  margin: 0 auto !important;
+  padding: 32px 40px 28px !important;
+  background: #ffffff;
+  border: 0 !important;
+  border-top: 0 !important;
+  border-radius: 24px;
+  box-shadow: 0 30px 70px -30px rgba(23, 61, 43, 0.35);
+}
+/* Registration card is wider so first and last name fit side by side */
+.pf-v5-c-login__container:has(#password-confirm) { max-width: 540px !important; }
+.pf-v5-c-login__footer { display: none !important; }
+/* ---------- Compact header ---------- */
+#kc-header {
+  padding: 0 !important;
+  margin: 0 0 14px !important;
+  background: none !important;
+  text-align: center;
+}
+#kc-header-wrapper, #kc-header-wrapper * { color: var(--df-deep) !important; }
+#kc-header-wrapper {
+  padding: 0 !important;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-align: center;
+}
+#kc-header-wrapper::before {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 8px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23246B3A'/%3E%3Cpath d='M8 24C8 14 14 8 24 8C24 18 18 24 8 24Z' fill='%23fff'/%3E%3Cpath d='M8 24L17 15' stroke='%23246B3A' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+#kc-header-wrapper::after {
+  content: "Manage. Track. Grow.";
+  display: block;
+  margin-top: 2px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--df-muted) !important;
+}
+.pf-v5-c-login__container:has(#password-confirm) #kc-header-wrapper::before {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 6px;
+}
+/* ---------- Form area: no border, no blue line ---------- */
+.pf-v5-c-login__main,
+.pf-v5-c-login__main-header,
+.pf-v5-c-login__main-body,
+.pf-v5-c-login__main-footer {
+  border: 0 !important;
+  border-top: 0 !important;
+  box-shadow: none !important;
+}
+.pf-v5-c-login__main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+.pf-v5-c-login__main::before, .pf-v5-c-login__main::after { display: none !important; }
+.pf-v5-c-login__main-header { padding: 0 !important; margin-bottom: 16px; text-align: center; }
+#kc-page-title, .pf-v5-c-title {
+  color: var(--df-deep) !important;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+}
+#kc-page-title::after {
+  content: "Sign in to continue to DocFlow";
+  display: block;
+  margin-top: 4px;
+  font-size: 0.92rem;
+  font-weight: 400;
+  color: var(--df-muted);
+}
+.pf-v5-c-login__container:has(#password-confirm) #kc-page-title::after {
+  content: "Fill in the required fields to get started";
+}
+.subtitle { display: none !important; }
+.pf-v5-c-login__main-body { padding: 0 !important; }
+/* ---------- Form spacing and labels ---------- */
+.pf-v5-c-form { gap: 16px !important; }
+.pf-v5-c-form__label-text { color: var(--df-ink); font-weight: 600; font-size: 0.9rem; }
+/* First and last name side by side (they stack on small screens or if markup differs) */
+#kc-register-form {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 16px;
+  row-gap: 14px;
+}
+#kc-register-form > * { grid-column: 1 / -1; }
+#kc-register-form > .pf-v5-c-form__group:has(#firstName),
+#kc-register-form > .pf-v5-c-form__group:has(#lastName) { grid-column: span 1; }
+/* ---------- Inputs ---------- */
+span.pf-v5-c-form-control, input.pf-v5-c-form-control {
+  border: 1px solid var(--df-border) !important;
+  border-radius: 14px !important;
+  background-color: #ffffff !important;
+  overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+span.pf-v5-c-form-control::before, span.pf-v5-c-form-control::after,
+.pf-v5-c-form-control::before, .pf-v5-c-form-control::after {
+  display: none !important;
+  border: 0 !important;
+}
+span.pf-v5-c-form-control > input {
+  height: 46px;
+  padding: 0 14px !important;
+  border: 0 !important;
+  background-color: transparent !important;
+  color: var(--df-ink);
+}
+span.pf-v5-c-form-control:hover { border-color: #b9d5a3 !important; }
+span.pf-v5-c-form-control:focus-within, input.pf-v5-c-form-control:focus {
+  border-color: var(--df-deep) !important;
+  box-shadow: 0 0 0 4px rgba(36, 107, 58, 0.14) !important;
+  outline: none !important;
+}
+/* ---------- Password field: green eye button blends in ---------- */
+.pf-v5-c-input-group {
+  align-items: stretch;
+  border: 1px solid var(--df-border);
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.pf-v5-c-input-group:hover { border-color: #b9d5a3; }
+.pf-v5-c-input-group:focus-within {
+  border-color: var(--df-deep);
+  box-shadow: 0 0 0 4px rgba(36, 107, 58, 0.14);
+}
+.pf-v5-c-input-group span.pf-v5-c-form-control {
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--df-deep) !important;
+  box-shadow: none !important;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after { display: none !important; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover { color: var(--df-ink) !important; }
+/* ---------- Primary button (same on sign in and create account) ---------- */
+.pf-v5-c-button.pf-m-primary {
+  min-height: 50px;
+  border: 0 !important;
+  border-radius: 14px !important;
+  font-weight: 700;
+  color: var(--df-ink) !important;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23173D2B' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, var(--df-lemon), var(--df-btn)) !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-size: 18px, 100% 100% !important;
+  background-position: right 22px center, 0 0 !important;
+  box-shadow: 0 10px 22px -14px rgba(36, 107, 58, 0.8);
+  transition: background-position .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.pf-v5-c-button.pf-m-primary:hover, .pf-v5-c-button.pf-m-primary:focus {
+  color: var(--df-ink) !important;
+  background-position: right 16px center, 0 0 !important;
+  box-shadow: 0 16px 28px -14px rgba(36, 107, 58, 0.95);
+  transform: translateY(-1px);
+}
+/* ---------- Links and divider ---------- */
+a { color: var(--df-deep); font-weight: 600; }
+a:hover { color: var(--df-ink); }
+#kc-info, #kc-registration { text-align: center; }
+#kc-info { margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--df-border); }
+/* ---------- Errors and alerts (red stays red, shape matches the theme) ---------- */
+.pf-v5-c-alert {
+  border-radius: 14px;
+  border: 1px solid var(--df-border);
+  box-shadow: none;
+}
+.pf-v5-c-form__helper-text.pf-m-error, .pf-v5-c-helper-text__item.pf-m-error { color: #b42318; }
+/* ---------- Small screens ---------- */
+@media (max-width: 560px) {
+  .pf-v5-c-login__container { padding: 26px 20px 22px !important; border-radius: 20px; }
+  #kc-register-form { grid-template-columns: 1fr; }
+  #kc-register-form > .pf-v5-c-form__group:has(#firstName),
+  #kc-register-form > .pf-v5-c-form__group:has(#lastName) { grid-column: 1 / -1; }
+  body::before, body::after { opacity: 0.35; }
+}
