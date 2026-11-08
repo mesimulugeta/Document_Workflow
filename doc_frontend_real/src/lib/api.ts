@@ -1,5 +1,14 @@
 import { keycloak } from "@/auth/keycloak"
-import type { AuditEntry, DocumentDto, DocumentStatus, FileDto, PageDto, WorkflowAction } from "@/types"
+import type {
+  ActivityDto,
+  AuditEntry,
+  DocumentDto,
+  DocumentStatus,
+  FileDto,
+  PageDto,
+  StatsDto,
+  WorkflowAction,
+} from "@/types"
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8081"
 
@@ -58,11 +67,13 @@ const ACTION_PATHS: Record<WorkflowAction, string> = {
 }
 
 export const api = {
-  listDocuments: (page = 0, size = 10, status?: DocumentStatus) => {
+  listDocuments: (page = 0, size = 10, status?: DocumentStatus, q?: string) => {
     const params = new URLSearchParams({ page: String(page), size: String(size) })
     if (status) params.set("status", status)
+    if (q) params.set("q", q)
     return request<PageDto<DocumentDto>>(`/api/documents?${params}`)
   },
+  stats: () => request<StatsDto>("/api/documents/stats"),
   getDocument: (id: number) => request<DocumentDto>(`/api/documents/${id}`),
   createDocument: (data: { title: string; description?: string }) => post<DocumentDto>("/api/documents", data),
   updateDocument: (id: number, data: { title: string; description?: string }) =>
@@ -92,4 +103,6 @@ export const api = {
     link.remove()
     URL.revokeObjectURL(url)
   },
+
+  activity: (limit = 30) => request<ActivityDto[]>(`/api/admin/activity?limit=${limit}`),
 }

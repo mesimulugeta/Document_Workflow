@@ -1,14 +1,14 @@
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import type { DocumentStatus } from "@/types"
 
-const STYLES: Record<DocumentStatus, string> = {
-  DRAFT: "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  SUBMITTED: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300",
-  UNDER_REVIEW: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300",
-  CHANGES_REQUESTED: "border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-950 dark:text-orange-300",
-  APPROVED: "border-green-200 bg-green-50 text-green-700 dark:border-green-900 dark:bg-green-950 dark:text-green-300",
-  REJECTED: "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300",
-  WITHDRAWN: "border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+const STYLES: Record<DocumentStatus, { badge: string; dot: string }> = {
+  DRAFT: { badge: "bg-slate-100 text-slate-700 ring-slate-200", dot: "bg-slate-400" },
+  SUBMITTED: { badge: "bg-blue-50 text-blue-700 ring-blue-200", dot: "bg-blue-500" },
+  UNDER_REVIEW: { badge: "bg-amber-50 text-amber-800 ring-amber-200", dot: "bg-amber-500" },
+  CHANGES_REQUESTED: { badge: "bg-orange-50 text-orange-800 ring-orange-200", dot: "bg-orange-500" },
+  APPROVED: { badge: "bg-green-50 text-green-800 ring-green-200", dot: "bg-green-500" },
+  REJECTED: { badge: "bg-red-50 text-red-700 ring-red-200", dot: "bg-red-500" },
+  WITHDRAWN: { badge: "bg-zinc-100 text-zinc-600 ring-zinc-200", dot: "bg-zinc-400" },
 }
 
 export function statusLabel(status: DocumentStatus): string {
@@ -16,10 +16,22 @@ export function statusLabel(status: DocumentStatus): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function StatusBadge({ status }: { status: DocumentStatus }) {
+export function statusDot(status: DocumentStatus): string {
+  return STYLES[status].dot
+}
+
+export function StatusBadge({ status, className }: { status: DocumentStatus; className?: string }) {
+  const style = STYLES[status]
   return (
-    <Badge variant="outline" className={STYLES[status]}>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
+        style.badge,
+        className,
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full", style.dot)} />
       {statusLabel(status)}
-    </Badge>
+    </span>
   )
 }

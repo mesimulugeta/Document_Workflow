@@ -1,14 +1,19 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link, useParams } from "react-router-dom"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Clock, FileText, Pencil, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 import { api, ApiError } from "@/lib/api"
+import { formatDateTime, timeAgo } from "@/lib/format"
+import { INPUT } from "@/lib/styles"
+import { cn } from "@/lib/utils"
 import type { DocumentDto, WorkflowAction } from "@/types"
 import { AttachmentsCard } from "@/components/AttachmentsCard"
-import { StatusBadge, statusLabel } from "@/components/StatusBadge"
+import { Avatar } from "@/components/Avatar"
+import { Panel } from "@/components/Panel"
+import { StatusBadge, statusDot, statusLabel } from "@/components/StatusBadge"
+import { WorkflowProgress } from "@/components/WorkflowProgress"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const ACTION_LABELS: Record<WorkflowAction, string> = {
@@ -36,10 +41,13 @@ const HISTORY_LABELS: Record<string, string> = {
 }
 
 const NEEDS_COMMENT: WorkflowAction[] = ["REJECT", "REQUEST_CHANGES"]
-const DESTRUCTIVE: WorkflowAction[] = ["REJECT", "WITHDRAW"]
+const PRIMARY_ACTIONS: WorkflowAction[] = ["SUBMIT", "START_REVIEW", "APPROVE", "RESUBMIT"]
 
-const INPUT =
-  "w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+function variantFor(action: WorkflowAction): "default" | "outline" | "destructive" {
+  if (action === "REJECT") return "destructive"
+  if (PRIMARY_ACTIONS.includes(action)) return "default"
+  return "outline"
+}
 
 function EditForm({ doc, onDone }: { doc: DocumentDto; onDone: () => void }) {
   const queryClient = useQueryClient()
@@ -112,6 +120,7 @@ export function DocumentDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["history", docId] })
     queryClient.invalidateQueries({ queryKey: ["files", docId] })
     queryClient.invalidateQueries({ queryKey: ["documents"] })
+    queryClient.invalidateQueries({ queryKey: ["stats"] })
   }
 
   const act = useMutation({
@@ -130,10 +139,10 @@ export function DocumentDetailPage() {
   const doc = docQuery.data
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="space-y-6">
       <Link
         to="/documents"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         Back to documents
@@ -142,90 +151,152 @@ export function DocumentDetailPage() {
       {docQuery.isLoading && <Skeleton className="h-40 w-full" />}
 
       {docQuery.isError && (
-        <Card className="p-6 text-red-600">
+        <Panel className="p-6 text-red-600">
           {docQuery.error instanceof Error ? docQuery.error.message : "Could not load the document."}
-        </Card>
+        </Panel>
       )}
 
       {doc && (
         <>
-          <Card className="space-y-3 p-6">
+          <Panel className="p-6">
             {editing ? (
               <EditForm doc={doc} onDone={() => setEditing(false)} />
             ) : (
-              <>
-                <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-2xl font-semibold">{doc.title}</h1>
-                  <StatusBadge status={doc.status} />
+              <div className="flex flex-wrap items-start gap-4">
+                <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+                  <FileText className="size-7" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-2xl font-semibold tracking-tight">{doc.title}</h1>
+                    <StatusBadge status={doc.status} />
+                  </div>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                    {doc.description ?? "No description."}
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-2">
+                      <Avatar name={doc.ownerName} className="size-6 text-[10px]" />
+                      {doc.ownerName}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5" title={formatDateTime(doc.updatedAt)}>
+                      <Clock className="size-3.5" />
+                      Updated {timeAgo(doc.updatedAt)}
+                    </span>
+                  </div>
                 </div>
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-                  {doc.description ?? "No description."}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    {doc.ownerName} · updated {new Date(doc.updatedAt).toLocaleString()}
-                  </span>
-                  {doc.editable && (
-                    <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-                      Edit
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
-          </Card>
-
-          <AttachmentsCard doc={doc} />
-
-          {doc.allowedActions.length > 0 && (
-            <Card className="space-y-3 p-6">
-              <h2 className="font-semibold">Actions</h2>
-              {doc.allowedActions.some((a) => NEEDS_COMMENT.includes(a)) && (
-                <textarea
-                  className={INPUT}
-                  rows={3}
-                  placeholder="Comment (required for Reject and Request changes)"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                />
-              )}
-              <div className="flex flex-wrap gap-2">
-                {doc.allowedActions.map((action) => (
-                  <Button
-                    key={action}
-                    variant={DESTRUCTIVE.includes(action) ? "destructive" : action === "APPROVE" ? "default" : "outline"}
-                    disabled={act.isPending || (NEEDS_COMMENT.includes(action) && !comment.trim())}
-                    onClick={() => act.mutate(action)}
-                  >
-                    {ACTION_LABELS[action]}
+                {doc.editable && (
+                  <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+                    <Pencil className="size-4" />
+                    Edit
                   </Button>
-                ))}
+                )}
               </div>
-            </Card>
-          )}
+            )}
+          </Panel>
 
-          <Card className="space-y-3 p-6">
-            <h2 className="font-semibold">History</h2>
-            {historyQuery.isLoading && <Skeleton className="h-16 w-full" />}
-            <ol className="space-y-4 border-l pl-6">
-              {historyQuery.data?.map((entry) => (
-                <li key={entry.id} className="relative">
-                  <span className="absolute left-[-1.85rem] top-1.5 size-2.5 rounded-full bg-primary" />
-                  <div className="text-sm font-medium">
-                    {HISTORY_LABELS[entry.action] ?? entry.action}{" "}
-                    <span className="font-normal text-muted-foreground">by {entry.actorName}</span>
+          <Panel className="p-6">
+            <WorkflowProgress status={doc.status} />
+          </Panel>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="order-last space-y-6 lg:order-0 lg:col-span-2">
+              <AttachmentsCard doc={doc} />
+
+              <Panel className="space-y-4 p-6">
+                <h2 className="font-semibold">History</h2>
+                {historyQuery.isLoading && <Skeleton className="h-16 w-full" />}
+                <ol className="relative space-y-5 border-l pl-6">
+                  {historyQuery.data?.map((entry) => (
+                    <li key={entry.id} className="relative">
+                      <span
+                        className={cn(
+                          "absolute left-[-1.85rem] top-1.5 size-2.5 rounded-full ring-4 ring-card",
+                          statusDot(entry.toStatus),
+                        )}
+                      />
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-medium">
+                            {HISTORY_LABELS[entry.action] ?? entry.action}{" "}
+                            <span className="font-normal text-muted-foreground">by {entry.actorName}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">{formatDateTime(entry.createdAt)}</div>
+                        </div>
+                        {entry.fromStatus && entry.fromStatus !== entry.toStatus && (
+                          <span className="text-xs text-muted-foreground">
+                            {statusLabel(entry.fromStatus)} → {statusLabel(entry.toStatus)}
+                          </span>
+                        )}
+                      </div>
+                      {entry.comment && (
+                        <p className="mt-2 rounded-xl bg-muted px-3 py-2 text-sm">{entry.comment}</p>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              </Panel>
+            </div>
+
+            <div className="space-y-6 lg:order-none">
+              <Panel className="space-y-4 p-6">
+                <h2 className="font-semibold">Actions</h2>
+                {doc.allowedActions.length === 0 ? (
+                  <div className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                    <p>There are no actions available to you on this document right now.</p>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {new Date(entry.createdAt).toLocaleString()}
-                    {entry.fromStatus && entry.fromStatus !== entry.toStatus
-                      ? ` · ${statusLabel(entry.fromStatus)} → ${statusLabel(entry.toStatus)}`
-                      : ""}
+                ) : (
+                  <>
+                    {doc.allowedActions.some((a) => NEEDS_COMMENT.includes(a)) && (
+                      <textarea
+                        className={INPUT}
+                        rows={3}
+                        placeholder="Comment (required for Reject and Request changes)"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                      />
+                    )}
+                    <div className="flex flex-col gap-2">
+                      {doc.allowedActions.map((action) => (
+                        <Button
+                          key={action}
+                          variant={variantFor(action)}
+                          className={cn(action === "WITHDRAW" && "text-red-600")}
+                          disabled={act.isPending || (NEEDS_COMMENT.includes(action) && !comment.trim())}
+                          onClick={() => act.mutate(action)}
+                        >
+                          {ACTION_LABELS[action]}
+                        </Button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </Panel>
+
+              <Panel className="space-y-3 p-6 text-sm">
+                <h2 className="font-semibold">Details</h2>
+                <dl className="space-y-2 text-muted-foreground">
+                  <div className="flex justify-between gap-4">
+                    <dt>Document</dt>
+                    <dd className="text-foreground">#{doc.id}</dd>
                   </div>
-                  {entry.comment && <p className="mt-1 rounded-md bg-muted px-3 py-2 text-sm">{entry.comment}</p>}
-                </li>
-              ))}
-            </ol>
-          </Card>
+                  <div className="flex justify-between gap-4">
+                    <dt>Owner</dt>
+                    <dd className="text-foreground">{doc.ownerName}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt>Created</dt>
+                    <dd className="text-foreground">{formatDateTime(doc.createdAt)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <dt>Status</dt>
+                    <dd className="text-foreground">{statusLabel(doc.status)}</dd>
+                  </div>
+                </dl>
+              </Panel>
+            </div>
+          </div>
         </>
       )}
     </div>

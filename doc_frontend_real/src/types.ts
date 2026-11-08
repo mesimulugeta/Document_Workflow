@@ -56,3 +56,20 @@ export interface FileDto {
   uploadedByName: string
   createdAt: string
 }
+
+export interface StatsDto {
+  total: number
+  byStatus: Partial<Record<DocumentStatus, number>>
+}
+
+export interface ActivityDto {
+  id: number
+  documentId: number
+  documentTitle: string | null
+  action: string
+  fromStatus: DocumentStatus | null
+  toStatus: DocumentStatus
+  comment: string | null
+  actorName: string | null
+  createdAt: string
+}

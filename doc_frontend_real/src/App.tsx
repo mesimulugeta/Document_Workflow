@@ -1,14 +1,22 @@
 import { Navigate, Route, Routes } from "react-router-dom"
 import { useAuth } from "@/auth/AuthProvider"
 import { AppLayout } from "@/components/AppLayout"
+import { ActivityPage } from "@/pages/ActivityPage"
 import { DocumentDetailPage } from "@/pages/DocumentDetailPage"
 import { DocumentsPage } from "@/pages/DocumentsPage"
 import { NewDocumentPage } from "@/pages/NewDocumentPage"
+import { ProfilePage } from "@/pages/ProfilePage"
 import { ReviewQueuePage } from "@/pages/ReviewQueuePage"
 
+// These guards only hide pages. The API enforces the same rules on the server.
 function ReviewRoute() {
   const { isReviewer } = useAuth()
   return isReviewer ? <ReviewQueuePage /> : <Navigate to="/documents" replace />
+}
+
+function AdminRoute() {
+  const { isAdmin } = useAuth()
+  return isAdmin ? <ActivityPage /> : <Navigate to="/documents" replace />
 }
 
 function NotFound() {
@@ -29,6 +37,8 @@ export default function App() {
         <Route path="/documents/new" element={<NewDocumentPage />} />
         <Route path="/documents/:id" element={<DocumentDetailPage />} />
         <Route path="/review" element={<ReviewRoute />} />
+        <Route path="/activity" element={<AdminRoute />} />
+        <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
