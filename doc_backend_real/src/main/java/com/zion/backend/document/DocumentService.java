@@ -3,7 +3,11 @@ package com.zion.backend.document;
 import static com.zion.backend.document.DocumentStatus.CHANGES_REQUESTED;
 import static com.zion.backend.document.DocumentStatus.DRAFT;
 
-import java.util.*;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -48,12 +52,23 @@ public class DocumentService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DocumentResponse> list(DocumentStatus status, Pageable pageable, CurrentUser me) {
+    public Page<DocumentResponse> list(DocumentStatus status, String q, Pageable pageable, CurrentUser me) {
         boolean reviewer = WorkflowRules.hasReviewerRole(me.roles());
-        Page<Document> page = (status == null)
-                ? documents.findVisible(me.id(), reviewer, pageable)
-                : documents.findVisibleByStatus(me.id(), reviewer, status, pageable);
-        return page.map(d -> toResponse(d, me));
+        String term = (q == null || q.isBlank()) ? null : q.trim();
+        return documents.search(me.id(), reviewer, status, term, pageable).map(d -> toResponse(d, me));
+    }
+
+    @Transactional(readOnly = true)
+    public StatsResponse stats(CurrentUser me) {
+        boolean reviewer = WorkflowRules.hasReviewerRole(me.roles());
+        Map<DocumentStatus, Long> byStatus = new EnumMap<>(DocumentStatus.class);
+        long total = 0;
+        for (Object[] row : documents.countByStatus(me.id(), reviewer)) {
+            long count = ((Number) row[1]).longValue();
+            byStatus.put((DocumentStatus) row[0], count);
+            total += count;
+        }
+        return new StatsResponse(total, byStatus);
     }
 
     @Transactional(readOnly = true)
@@ -96,7 +111,7 @@ public class DocumentService {
         List<AuditLog> entries = audit.findByDocumentIdOrderByCreatedAtAscIdAsc(id);
         Set<Long> actorIds = entries.stream().map(AuditLog::getActorId).collect(Collectors.toSet());
         Map<Long, String> names = users.findAllById(actorIds).stream()
-                .collect(Collectors.toMap(AppUser::getId, u -> Objects.toString(u.getFullName(), "Unknown")));
+                .collect(Collectors.toMap(AppUser::getId, AppUser::getFullName));
         return entries.stream()
                 .map(e -> new AuditEntryResponse(e.getId(), e.getAction(), e.getFromStatus(), e.getToStatus(),
                         e.getComment(), e.getActorId(), names.get(e.getActorId()), e.getCreatedAt()))

@@ -26,6 +26,7 @@ import com.zion.backend.document.DocumentRequest;
 import com.zion.backend.document.DocumentResponse;
 import com.zion.backend.document.DocumentService;
 import com.zion.backend.document.DocumentStatus;
+import com.zion.backend.document.StatsResponse;
 import com.zion.backend.user.CurrentUserResolver;
 import com.zion.backend.workflow.WorkflowAction;
 
@@ -53,9 +54,15 @@ public class DocumentController {
     @GetMapping
     public PagedModel<DocumentResponse> list(
             @RequestParam(required = false) DocumentStatus status,
+            @RequestParam(required = false) String q,
             @PageableDefault(size = 20, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal Jwt jwt, Authentication auth) {
-        return new PagedModel<>(service.list(status, pageable, currentUser.resolve(jwt, auth)));
+        return new PagedModel<>(service.list(status, q, pageable, currentUser.resolve(jwt, auth)));
+    }
+
+    @GetMapping("/stats")
+    public StatsResponse stats(@AuthenticationPrincipal Jwt jwt, Authentication auth) {
+        return service.stats(currentUser.resolve(jwt, auth));
     }
 
     @GetMapping("/{id}")
